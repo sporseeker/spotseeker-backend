@@ -1,0 +1,2199 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "SpotSeeker API Documentation",
+        "description": "Event booking and management API for SpotSeeker platform",
+        "contact": {
+            "email": "api@spotseeker.lk"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local Development Server"
+        },
+        {
+            "url": "https://api.spotseeker.lk",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {
+        "/api/bookings": {
+            "post": {
+                "tags": [
+                    "Bookings"
+                ],
+                "summary": "Create Booking",
+                "description": "Create a new ticket booking for an event",
+                "operationId": "b855da5397a1b0eac3f16f963f5151ff",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "event_id",
+                                    "ticket_package_details",
+                                    "first_name",
+                                    "last_name",
+                                    "email",
+                                    "phone_no",
+                                    "payment_provider",
+                                    "promo_code"
+                                ],
+                                "properties": {
+                                    "event_id": {
+                                        "type": "integer",
+                                        "example": 33
+                                    },
+                                    "ticket_package_details": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "package_id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "ticket_count": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "first_name": {
+                                        "type": "string",
+                                        "example": "Pasan"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Kavinda"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "john@example.com"
+                                    },
+                                    "phone_no": {
+                                        "type": "string",
+                                        "example": "0771234567"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "70470dcb-752a-4278-a4bb-26df4f4a41e9",
+                                            "9e96e295-f26a-46e5-896d-831d6f112b06"
+                                        ],
+                                        "example": "70470dcb-752a-4278-a4bb-26df4f4a41e9"
+                                    },
+                                    "promo_code": {
+                                        "type": "string",
+                                        "example": "HELLO2025"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Booking created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Booking created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "booking_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "total_amount": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 10000
+                                                },
+                                                "payment_url": {
+                                                    "type": "string",
+                                                    "example": "https://payment.gateway.com/pay/123"
+                                                },
+                                                "booking_reference": {
+                                                    "type": "string",
+                                                    "example": "BK-2025-001"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Booking failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/events": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get Events",
+                "description": "Retrieve events with optional filtering by status",
+                "operationId": "872779d914c7b651c95929b3dc21fc69",
+                "parameters": [
+                    {
+                        "name": "status[]",
+                        "in": "query",
+                        "description": "Filter events by status (can pass multiple values)",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "ongoing",
+                                    "pending",
+                                    "completed",
+                                    "cancelled"
+                                ]
+                            }
+                        },
+                        "example": [
+                            "ongoing",
+                            "pending"
+                        ]
+                    },
+                    {
+                        "name": "featured",
+                        "in": "query",
+                        "description": "Filter featured events",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Limit number of results",
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Events retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "events retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "uid": {
+                                                        "type": "string",
+                                                        "example": "678d3993dd3f3"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Concert Event"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "example": "edm"
+                                                    },
+                                                    "sub_type": {
+                                                        "type": "string",
+                                                        "example": "OUTDOOR"
+                                                    },
+                                                    "organizer": {
+                                                        "type": "string",
+                                                        "example": "Event Organizer"
+                                                    },
+                                                    "start_date": {
+                                                        "type": "string",
+                                                        "format": "datetime",
+                                                        "example": "2025-04-17 16:00:00"
+                                                    },
+                                                    "end_date": {
+                                                        "type": "string",
+                                                        "format": "datetime",
+                                                        "example": "2025-04-18 06:00:00"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "ongoing"
+                                                    },
+                                                    "featured": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "currency": {
+                                                        "type": "string",
+                                                        "example": "LKR"
+                                                    },
+                                                    "venue": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Venue Name"
+                                                            },
+                                                            "location_url": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "ticket_packages": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "Early Bird"
+                                                                },
+                                                                "price": {
+                                                                    "type": "string",
+                                                                    "example": "5000"
+                                                                },
+                                                                "sold_out": {
+                                                                    "type": "boolean",
+                                                                    "example": false
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing required parameters",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "something went wrong"
+                                        },
+                                        "errors": {
+                                            "type": "string",
+                                            "example": "The status field is required."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Create Event",
+                "description": "Create a new event (Admin only)",
+                "operationId": "2cc9a7fd20f3d079d52519856161bc79",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "start_date",
+                                    "start_time",
+                                    "end_date",
+                                    "end_time",
+                                    "venue_id",
+                                    "type",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Concert Event"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Amazing concert event"
+                                    },
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-12-25"
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "19:00:00"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-12-25"
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "23:00:00"
+                                    },
+                                    "venue_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "edm",
+                                            "concert",
+                                            "festival",
+                                            "conference"
+                                        ],
+                                        "example": "concert"
+                                    },
+                                    "sub_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "INDOOR",
+                                            "OUTDOOR"
+                                        ],
+                                        "example": "OUTDOOR"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "ongoing",
+                                            "completed",
+                                            "cancelled"
+                                        ],
+                                        "example": "pending"
+                                    },
+                                    "featured": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "currency": {
+                                        "type": "string",
+                                        "example": "LKR"
+                                    },
+                                    "event_handling_cost": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 500
+                                    },
+                                    "manager_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Event created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Event created successfully"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin role required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access denied."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/healthcheck": {
+            "get": {
+                "tags": [
+                    "General"
+                ],
+                "summary": "Health Check",
+                "description": "Check if the API is running properly",
+                "operationId": "25d8bd0283e4e4028a5b80ea75c0b269",
+                "responses": {
+                    "200": {
+                        "description": "API is healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "OK"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/search": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Search Events",
+                "description": "Search for events by query string",
+                "operationId": "c374b59db9206649f252cc5809b7c77c",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "concert"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Concert Event"
+                                            },
+                                            "organizer": {
+                                                "type": "string",
+                                                "example": "Event Organizer"
+                                            },
+                                            "start_date": {
+                                                "type": "string",
+                                                "format": "datetime",
+                                                "example": "2025-04-17 16:00"
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "example": "ongoing"
+                                            },
+                                            "venue": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Venue Name"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "ticket_packages": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Early Bird"
+                                                        },
+                                                        "price": {
+                                                            "type": "string",
+                                                            "example": "5000"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - missing query parameter",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Query parameter 'q' is required"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/event/{uid}": {
+            "get": {
+                "tags": [
+                    "Events"
+                ],
+                "summary": "Get Event by UID",
+                "description": "Get a specific event by its unique identifier",
+                "operationId": "cd4efe95962b4829241015e30216be67",
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "path",
+                        "description": "Event unique identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "678d3993dd3f3"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Event retrieved successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "uid": {
+                                                    "type": "string",
+                                                    "example": "678d3993dd3f3"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Concert Event"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "start_date": {
+                                                    "type": "string",
+                                                    "format": "datetime",
+                                                    "example": "2025-04-17 16:00:00"
+                                                },
+                                                "end_date": {
+                                                    "type": "string",
+                                                    "format": "datetime",
+                                                    "example": "2025-04-18 06:00:00"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "ongoing"
+                                                },
+                                                "venue": {
+                                                    "type": "object"
+                                                },
+                                                "ticket_packages": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 404
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Event not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User Login",
+                "description": "Login user with email and password",
+                "operationId": "b738aa16b062f9a89c3adc5aa4ad9b56",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login successful"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "user@example.com"
+                                                        },
+                                                        "phone_no": {
+                                                            "type": "string",
+                                                            "example": "0771234567"
+                                                        },
+                                                        "roles": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "access_token": {
+                                                    "type": "string",
+                                                    "example": "1|abc123..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 401
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Authentication failed"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User Registration",
+                "description": "Register a new user account",
+                "operationId": "1832353c4a867454d801d77304e378cd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "phone_no",
+                                    "verification_method"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "phone_no": {
+                                        "type": "string",
+                                        "example": "0771234567"
+                                    },
+                                    "verification_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "sms",
+                                            "email"
+                                        ],
+                                        "example": "sms"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Registration successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registration successful! A verification code has been sent to your mobile number."
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "user@example.com"
+                                                },
+                                                "phone_no": {
+                                                    "type": "string",
+                                                    "example": "0771234567"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "1|abc123..."
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/promotions/check": {
+            "post": {
+                "tags": [
+                    "Promotions"
+                ],
+                "summary": "Check Promotion Code",
+                "description": "Validate a promotion code for an event and ticket package",
+                "operationId": "342152adb85f2147c5b0b89377a17327",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "promo_code",
+                                    "event_id",
+                                    "package_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "promo_code": {
+                                        "type": "string",
+                                        "example": "DISCOUNT10"
+                                    },
+                                    "event_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "package_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Promotion code validation result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Promotion code is valid"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "valid": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "discount_amount": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 500
+                                                },
+                                                "discount_type": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "percentage",
+                                                        "fixed"
+                                                    ],
+                                                    "example": "percentage"
+                                                },
+                                                "discount_value": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 10
+                                                },
+                                                "original_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 5000
+                                                },
+                                                "discounted_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 4500
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid promotion code",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 400
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid promotion code"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 422
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get All Users",
+                "description": "Get all users (Admin only)",
+                "operationId": "d64c69c227bcaa94189f8552f9336c55",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number for pagination",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results per page",
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Users retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "John Doe"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "john@example.com"
+                                                    },
+                                                    "phone_no": {
+                                                        "type": "string",
+                                                        "example": "0771234567"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "active"
+                                                    },
+                                                    "roles": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin role required",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Access denied."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user/orders": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get User Orders",
+                "description": "Get current user's booking orders",
+                "operationId": "c77f61ba2db03382b9064e54dca8342f",
+                "responses": {
+                    "200": {
+                        "description": "User orders retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User data retrieved successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john@example.com"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "orders": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "booking_reference": {
+                                                                "type": "string",
+                                                                "example": "BK-2025-001"
+                                                            },
+                                                            "event_name": {
+                                                                "type": "string",
+                                                                "example": "Concert Event"
+                                                            },
+                                                            "total_amount": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 5000
+                                                            },
+                                                            "booking_status": {
+                                                                "type": "string",
+                                                                "example": "confirmed"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/user": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get User Profile",
+                "description": "Get current authenticated user's profile data",
+                "operationId": "383378ef1118b336f0dcd9764294e4ec",
+                "responses": {
+                    "200": {
+                        "description": "User profile retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User data retrieved successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "example": "John"
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "example": "Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "john@example.com"
+                                                },
+                                                "phone_no": {
+                                                    "type": "string",
+                                                    "example": "0771234567"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/venues": {
+            "get": {
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Get All Venues",
+                "description": "Retrieve all venues (Admin only)",
+                "operationId": "6260c83d3930fca07793e2a99893fe18",
+                "responses": {
+                    "200": {
+                        "description": "Venues retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Venues retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Grand Concert Hall"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "123 Main Street, Colombo"
+                                                    },
+                                                    "capacity": {
+                                                        "type": "integer",
+                                                        "example": 1000
+                                                    },
+                                                    "location_url": {
+                                                        "type": "string",
+                                                        "example": "https://maps.google.com/..."
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Venues"
+                ],
+                "summary": "Create Venue",
+                "description": "Create a new venue (Admin only)",
+                "operationId": "adb2031b458232412dfc4e1dc8d69563",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "address",
+                                    "city",
+                                    "capacity"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Grand Concert Hall"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Main Street, Colombo"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Colombo"
+                                    },
+                                    "capacity": {
+                                        "type": "integer",
+                                        "example": 1000
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "A beautiful concert hall with excellent acoustics"
+                                    },
+                                    "location_url": {
+                                        "type": "string",
+                                        "example": "https://maps.google.com/..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Venue created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "code": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Venue created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Grand Concert Hall"
+                                                },
+                                                "address": {
+                                                    "type": "string",
+                                                    "example": "123 Main Street, Colombo"
+                                                },
+                                                "capacity": {
+                                                    "type": "integer",
+                                                    "example": 1000
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthenticated."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApiResponse": {
+                "properties": {
+                    "status": {
+                        "description": "Request success status",
+                        "type": "boolean"
+                    },
+                    "code": {
+                        "description": "HTTP status code",
+                        "type": "integer"
+                    },
+                    "message": {
+                        "description": "Response message",
+                        "type": "string"
+                    },
+                    "data": {
+                        "description": "Response data",
+                        "type": "object"
+                    },
+                    "errors": {
+                        "description": "Array of errors if any",
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "type": "object"
+            },
+            "Event": {
+                "properties": {
+                    "id": {
+                        "description": "Event ID",
+                        "type": "integer"
+                    },
+                    "uid": {
+                        "description": "Event unique identifier",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Event name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Event description",
+                        "type": "string"
+                    },
+                    "type": {
+                        "description": "Event type",
+                        "type": "string",
+                        "enum": [
+                            "edm",
+                            "concert",
+                            "festival",
+                            "conference"
+                        ]
+                    },
+                    "sub_type": {
+                        "description": "Event sub type",
+                        "type": "string",
+                        "enum": [
+                            "INDOOR",
+                            "OUTDOOR"
+                        ]
+                    },
+                    "organizer": {
+                        "description": "Event organizer",
+                        "type": "string"
+                    },
+                    "start_date": {
+                        "description": "Event start date and time",
+                        "type": "string",
+                        "format": "datetime"
+                    },
+                    "end_date": {
+                        "description": "Event end date and time",
+                        "type": "string",
+                        "format": "datetime"
+                    },
+                    "status": {
+                        "description": "Event status",
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "ongoing",
+                            "completed",
+                            "cancelled",
+                            "soldout"
+                        ]
+                    },
+                    "featured": {
+                        "description": "Is event featured",
+                        "type": "boolean"
+                    },
+                    "currency": {
+                        "description": "Currency code",
+                        "type": "string"
+                    },
+                    "venue": {
+                        "$ref": "#/components/schemas/Venue"
+                    },
+                    "ticket_packages": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TicketPackage"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Venue": {
+                "properties": {
+                    "id": {
+                        "description": "Venue ID",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Venue name",
+                        "type": "string"
+                    },
+                    "address": {
+                        "description": "Venue address",
+                        "type": "string"
+                    },
+                    "seating_capacity": {
+                        "description": "Venue capacity",
+                        "type": "integer"
+                    },
+                    "location_url": {
+                        "description": "Google Maps URL",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "TicketPackage": {
+                "properties": {
+                    "id": {
+                        "description": "Package ID",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "Package name",
+                        "type": "string"
+                    },
+                    "price": {
+                        "description": "Package price",
+                        "type": "string"
+                    },
+                    "description": {
+                        "description": "Package description",
+                        "type": "string"
+                    },
+                    "sold_out": {
+                        "description": "Is package sold out",
+                        "type": "boolean"
+                    },
+                    "active": {
+                        "description": "Is package active",
+                        "type": "boolean"
+                    },
+                    "max_tickets_can_buy": {
+                        "description": "Maximum tickets per purchase",
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "properties": {
+                    "id": {
+                        "description": "User ID",
+                        "type": "integer"
+                    },
+                    "name": {
+                        "description": "User full name",
+                        "type": "string"
+                    },
+                    "first_name": {
+                        "description": "User first name",
+                        "type": "string"
+                    },
+                    "last_name": {
+                        "description": "User last name",
+                        "type": "string"
+                    },
+                    "email": {
+                        "description": "User email",
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "phone_no": {
+                        "description": "User phone number",
+                        "type": "string"
+                    },
+                    "status": {
+                        "description": "User status",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "banned"
+                        ]
+                    },
+                    "roles": {
+                        "description": "User roles",
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Booking": {
+                "properties": {
+                    "id": {
+                        "description": "Booking ID",
+                        "type": "integer"
+                    },
+                    "booking_reference": {
+                        "description": "Booking reference number",
+                        "type": "string"
+                    },
+                    "event_id": {
+                        "description": "Event ID",
+                        "type": "integer"
+                    },
+                    "package_id": {
+                        "description": "Ticket package ID",
+                        "type": "integer"
+                    },
+                    "quantity": {
+                        "description": "Number of tickets",
+                        "type": "integer"
+                    },
+                    "total_amount": {
+                        "description": "Total booking amount",
+                        "type": "number",
+                        "format": "float"
+                    },
+                    "booking_status": {
+                        "description": "Booking status",
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "cancelled",
+                            "refunded"
+                        ]
+                    },
+                    "customer_name": {
+                        "description": "Customer name",
+                        "type": "string"
+                    },
+                    "customer_email": {
+                        "description": "Customer email",
+                        "type": "string"
+                    },
+                    "customer_phone": {
+                        "description": "Customer phone",
+                        "type": "string"
+                    },
+                    "payment_method": {
+                        "description": "Payment method used",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "properties": {
+                    "status": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "code": {
+                        "type": "integer",
+                        "example": 422
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "validation failed"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "errors": {
+                        "description": "Field-specific validation errors",
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "UnauthorizedError": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Unauthenticated."
+                    }
+                },
+                "type": "object"
+            },
+            "ForbiddenError": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Access denied."
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "General",
+            "description": "General API endpoints"
+        },
+        {
+            "name": "Bookings",
+            "description": "Bookings"
+        },
+        {
+            "name": "Events",
+            "description": "Events"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Promotions",
+            "description": "Promotions"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
+        },
+        {
+            "name": "Venues",
+            "description": "Venues"
+        }
+    ]
+}
