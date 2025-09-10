@@ -2,6 +2,9 @@
 # SpotSeeker Backend API Tests
 # Use this file with REST Client extension in VS Code
 # Server: http://localhost:8000
+# 
+# 📚 API Documentation: http://localhost:8000/api/documentation (Swagger UI)
+# 📋 API JSON Schema: http://localhost:8000/docs
 ###
 
 @baseUrl = http://localhost:8000
@@ -15,16 +18,71 @@ GET {{api}}/healthcheck
 ###
 
 ### Register User
+# Note: Role assignment during registration is now implemented! 
+# Set ALLOW_ROLE_ON_REGISTER=true in your .env file (already set for development).
+# Users without a role parameter will get the default 'User' role.
 POST {{api}}/auth/register
 Content-Type: application/json
 
 {
-  "name": "saman kumara",
-  "email": "samankumara@gmail.com",
+  "name": "pasan kavinda",
+  "email": "pasankavindaabey@gmail.com",
   "password": "password123",
   "password_confirmation": "password123",
-  "phone_no": "0719000999",
+  "phone_no": "0719000492",
   "verification_method": "sms"
+}
+
+### Register Admin User (Now Implemented!)
+# This request now works! Role assignment during registration has been implemented.
+# The backend now:
+# 1. Checks env('ALLOW_ROLE_ON_REGISTER') - set to true in .env file
+# 2. Validates the role parameter against available roles
+# 3. Assigns the specified role instead of defaulting to 'User'
+# 4. Fixed the role case issue (now correctly uses 'User' instead of 'user')
+# 
+# Available roles: Admin, Manager, User, Coordinator
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin.user@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "phone_no": "0719000333",
+  "verification_method": "sms",
+  "role": "Admin"
+}
+
+### Register Manager User (Now Implemented!)
+# This request now works with the updated backend implementation
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Manager User",
+  "email": "manager.user@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "phone_no": "0719000777",
+  "verification_method": "sms",
+  "role": "Manager"
+}
+
+### Register Coordinator User (Now Implemented!)
+# Example of registering a user with Coordinator role
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Coordinator User",
+  "email": "coordinator.user@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "phone_no": "0719000666",
+  "verification_method": "sms",
+  "role": "Coordinator"
 }
 
 ### Login User
@@ -34,7 +92,7 @@ Content-Type: application/json
 
 {
   "email": "pasankavindaabey@gmail.com",
-  "password": "newpassword123"
+  "password": "password123"
 }
 
 ### Social Login
@@ -339,22 +397,22 @@ POST {{api}}/bookings
 Content-Type: application/json
 
 {
-  "event_id": 1,
-  "package_id": 1,
-  "quantity": 2,
-  "customer_name": "John Doe",
-  "customer_email": "john@example.com",
-  "customer_phone": "+94771234567",
-  "payment_method": "card"
+  "event_id": 33,
+  "ticket_package_details": [{"package_id": 2, "ticket_count": 2}],
+  "first_name": "Pasan",
+  "last_name": "Kavinda",
+  "email": "pasankavindaabey@gmail.com",
+  "phone_no": "07190000492",
+  "payment_provider": "70470dcb-752a-4278-a4bb-26df4f4a41e9",
+  "promo_code": "HELLO2025"
 }
 
 ### Get Booking Details
-POST {{api}}/bookings/1
+POST {{api}}/bookings/D61968C10788A7691
 Content-Type: application/json
 
 {
-  "booking_id": 1,
-  "customer_email": "john@example.com"
+  "customer_nic": "200029800989",
 }
 
 ### Update Booking
@@ -407,12 +465,11 @@ POST {{api}}/promotions/check
 Content-Type: application/json
 
 {
-  "promo_code": "DISCOUNT10",
-  "event_id": 1,
-  "package_id": 1,
-  "quantity": 2
+  "promo_code": "HELLO2025",
+  "event_id": 33,
+  "ticket_package_details": [{"package_id": 2, "ticket_count": 2}],
+  "email": "pasankavindaabey@gmail.com"
 }
-
 ###
 # Sales API (Admin)
 ###

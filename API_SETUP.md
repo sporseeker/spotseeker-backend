@@ -29,7 +29,13 @@ The SpotSeeker Backend API is now fully configured and ready to use with the RDS
 
 ### Testing the API
 
-Use the `api_test.http` file with the **REST Client** extension in VS Code to test all API endpoints:
+**Option 1: Swagger UI (Interactive Documentation)**
+- **URL**: `http://localhost:8000/api/documentation`
+- **Features**: Interactive testing, authentication, real-time responses
+- **Perfect for**: API exploration, testing, and debugging
+
+**Option 2: REST Client Extension**
+Use the `api_test.http` file with the **REST Client** extension in VS Code:
 
 1. Install the "REST Client" extension in VS Code
 2. Open the `api_test.http` file
