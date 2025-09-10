@@ -1,0 +1,779 @@
+###
+# SpotSeeker Backend API Tests
+# Use this file with REST Client extension in VS Code
+# Server: http://localhost:8000
+# 
+# 📚 API Documentation: http://localhost:8000/api/documentation (Swagger UI)
+# 📋 API JSON Schema: http://localhost:8000/docs
+###
+
+@baseUrl = http://localhost:8000
+@api = {{baseUrl}}/api
+
+### Health Check
+GET {{api}}/healthcheck
+
+###
+# Authentication & User Management
+###
+
+### Register User
+# Note: Role assignment during registration is now implemented! 
+# Set ALLOW_ROLE_ON_REGISTER=true in your .env file (already set for development).
+# Users without a role parameter will get the default 'User' role.
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "pasan kavinda",
+  "email": "pasankavindaabey@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "phone_no": "0719000492",
+  "verification_method": "sms"
+}
+
+### Register Admin User (Now Implemented!)
+# This request now works! Role assignment during registration has been implemented.
+# The backend now:
+# 1. Checks env('ALLOW_ROLE_ON_REGISTER') - set to true in .env file
+# 2. Validates the role parameter against available roles
+# 3. Assigns the specified role instead of defaulting to 'User'
+# 4. Fixed the role case issue (now correctly uses 'User' instead of 'user')
+# 
+# Available roles: Admin, Manager, User, Coordinator
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin.user@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "phone_no": "0719000333",
+  "verification_method": "sms",
+  "role": "Admin"
+}
+
+### Register Manager User (Now Implemented!)
+# This request now works with the updated backend implementation
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Manager User",
+  "email": "manager.user@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "phone_no": "0719000777",
+  "verification_method": "sms",
+  "role": "Manager"
+}
+
+### Register Coordinator User (Now Implemented!)
+# Example of registering a user with Coordinator role
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Coordinator User",
+  "email": "coordinator.user@gmail.com",
+  "password": "password123",
+  "password_confirmation": "password123",
+  "phone_no": "0719000666",
+  "verification_method": "sms",
+  "role": "Coordinator"
+}
+
+### Login User
+# @name loginUser
+POST {{api}}/login
+Content-Type: application/json
+
+{
+  "email": "pasankavindaabey@gmail.com",
+  "password": "password123"
+}
+
+### Social Login
+POST {{api}}/socialLogin
+Content-Type: application/json
+
+{
+  "provider": "google",
+  "token": "1471|hVlbKSII9KK3hoDXIuwV5UvGdpATOYZ3wNmAJQkb658af3c9",
+  "email": "pasankavindaabey@gmail.com",
+  "name": "pasan kavinda"
+}
+
+### Forgot Password
+POST {{api}}/auth/password/forgot
+Content-Type: application/json
+
+{
+  "email": "pasankavindaabey@gmail.com"
+}
+
+### Reset Password
+POST {{api}}/auth/password/reset
+Content-Type: application/json
+
+{
+  "token": "394c06b905609eb4526132e2ed4ca0eae80ef950225349ccf9c54c3c2a609780",
+  "email": "pasankavindaabey@gmail.com",
+  "password": "newpassword123",
+  "password_confirmation": "newpassword123"
+}
+
+### Manager Login
+POST {{api}}/auth/manager/login
+Content-Type: application/json
+
+{
+  "email": "manager@example.com",
+  "password": "password123"
+}
+
+### Manager Social Login
+POST {{api}}/auth/manager/socialLogin
+Content-Type: application/json
+
+{
+  "provider": "google",
+  "token": "your_google_access_token",
+  "email": "manager@gmail.com",
+  "name": "Manager User"
+}
+
+###
+# Protected Routes (Require Authentication)
+# First login and get the token, then use it in subsequent requests
+###
+
+@authToken = Bearer {{loginUser.response.body.$.data.token}}
+
+### Get User Data
+GET {{api}}/user
+Authorization: {{authToken}}
+
+### Update User Profile
+POST {{api}}/user/profile
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "first_name": "Upasan",
+  "last_name": "Ukavinda",
+  "email": "pasankavindaabey@gmail.com",
+  "phone_no": "0771234568",
+  "nic": "123456789V"
+}
+
+### Get User Orders
+GET {{api}}/user/orders
+Authorization: {{authToken}}
+
+### Subscribe to Notifications
+POST {{api}}/subscribe
+Authorization: {{authToken}}
+Content-Type: application/json
+
+{
+  "mobile_no": "0771234568",
+  "event_id": "6798ea6f15bea",
+  "type": "event"
+}
+
+### Logout
+POST {{api}}/auth/logout
+Authorization: {{authToken}}
+
+### Delete User Account
+DELETE {{api}}/user/profile
+Authorization: {{authToken}}
+
+###
+# Events API
+###
+
+### Get All Events (requires status parameter)
+GET {{api}}/events?status[]=ongoing&status[]=pending
+Content-Type: application/json
+
+### Get Event by UID 
+GET {{api}}/event/678d3993dd3f3
+Content-Type: application/json
+
+### Search Events
+GET {{api}}/search?q=concert
+Content-Type: application/json
+
+### Get Event Invitation
+GET {{api}}/event/invitation/invitation_id_here
+Content-Type: application/json
+
+### RSVP to Event Invitation
+POST {{api}}/event/invitationRSVP
+Content-Type: application/json
+
+{
+  "invitation_id": "invitation_id_here",
+  "status": "accepted"
+}
+
+###
+# Admin Only Routes (Require Admin Authentication)
+###
+
+@adminToken = Bearer 1479|Gsz79jX6JCUzFt8Er4s1tCDom3J6eROaFkizHUos4d9af83e
+
+### Create Event (Admin)
+POST {{api}}/events
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Test Concert Event",
+  "description": "A amazing concert event",
+  "start_date": "2024-12-25",
+  "start_time": "19:00:00",
+  "end_date": "2024-12-25",
+  "end_time": "23:00:00",
+  "venue_id": 1,
+  "type": "concert",
+  "status": "pending",
+  "featured": false,
+  "currency": "LKR",
+  "event_handling_cost": 500.00,
+  "manager_id": 1
+}
+
+### Update Event (Admin)
+POST {{api}}/updateEvent/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Concert Event",
+  "description": "Updated description",
+  "status": "ongoing"
+}
+
+### Delete Event (Admin)
+DELETE {{api}}/events/1
+Authorization: {{adminToken}}
+
+### Get Event Details (Admin)
+GET {{api}}/events/1
+Authorization: {{adminToken}}
+
+### Search Events (Admin)
+GET {{api}}/events/search?q=concert
+Authorization: {{adminToken}}
+
+### Get Basic Stats (Admin)
+GET {{api}}/stats
+Authorization: {{adminToken}}
+
+### Get All Users (Admin)
+GET {{api}}/users
+Authorization: {{adminToken}}
+
+### Create User (Admin)
+POST {{api}}/user/create
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "New User",
+  "email": "newuser@example.com",
+  "password": "password123",
+  "role": "Customer"
+}
+
+### Ban User (Admin)
+POST {{api}}/users/ban/1
+Authorization: {{adminToken}}
+
+### Activate User (Admin)
+POST {{api}}/users/activate/1
+Authorization: {{adminToken}}
+
+### Verify Admin User
+POST {{api}}/admin/verify
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "user_id": 1
+}
+
+###
+# Venues API (Admin)
+###
+
+### Get All Venues (Admin)
+GET {{api}}/venues
+Authorization: {{adminToken}}
+
+### Create Venue (Admin)
+POST {{api}}/venues
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Test Venue",
+  "address": "123 Venue Street, Colombo",
+  "city": "Colombo",
+  "capacity": 1000,
+  "description": "A great venue for events",
+  "location_url": "https://maps.google.com/..."
+}
+
+### Get Venue Details (Admin)
+GET {{api}}/venues/1
+Authorization: {{adminToken}}
+
+### Update Venue (Admin)
+POST {{api}}/updateVenue/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Venue Name",
+  "capacity": 1500
+}
+
+### Delete Venue (Admin)
+DELETE {{api}}/venues/1
+Authorization: {{adminToken}}
+
+###
+# Ticket Packages API (Admin)
+###
+
+### Get All Ticket Packages (Admin)
+GET {{api}}/ticket-packages
+Authorization: {{adminToken}}
+
+### Create Ticket Package (Admin)
+POST {{api}}/ticket-packages
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "VIP Package",
+  "description": "VIP seating with premium amenities",
+  "price": 5000.00,
+  "total_tickets": 50,
+  "available_tickets": 50,
+  "event_id": 1
+}
+
+### Get Ticket Package Details (Admin)
+GET {{api}}/ticket-packages/1
+Authorization: {{adminToken}}
+
+### Update Ticket Package (Admin)
+PUT {{api}}/ticket-packages/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "price": 6000.00,
+  "total_tickets": 75
+}
+
+### Delete Ticket Package (Admin)
+DELETE {{api}}/ticket-packages/1
+Authorization: {{adminToken}}
+
+###
+# Bookings API
+###
+
+### Create Booking
+POST {{api}}/bookings
+Content-Type: application/json
+
+{
+  "event_id": 33,
+  "ticket_package_details": [{"package_id": 2, "ticket_count": 2}],
+  "first_name": "Pasan",
+  "last_name": "Kavinda",
+  "email": "pasankavindaabey@gmail.com",
+  "phone_no": "07190000492",
+  "payment_provider": "70470dcb-752a-4278-a4bb-26df4f4a41e9",
+  "promo_code": "HELLO2025"
+}
+
+### Get Booking Details
+POST {{api}}/bookings/D61968C10788A7691
+Content-Type: application/json
+
+{
+  "customer_nic": "200029800989",
+}
+
+### Update Booking
+POST {{api}}/bookings/update
+Content-Type: application/json
+
+{
+  "booking_id": 1,
+  "status": "confirmed",
+  "customer_email": "john@example.com"
+}
+
+### Get All Bookings (Admin)
+GET {{api}}/bookings
+Authorization: {{adminToken}}
+
+### Update Booking Status (Admin)
+PUT {{api}}/bookings/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "confirmed"
+}
+
+### Generate E-Ticket (Admin)
+POST {{api}}/bookings/generateticket/1
+Authorization: {{adminToken}}
+
+### Generate Sub Bookings (Admin)
+POST {{api}}/bookings/generateSubBookings/1
+Authorization: {{adminToken}}
+
+### Verify Booking (Manager/Admin)
+POST {{api}}/booking/verify
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "booking_id": 1,
+  "verification_code": "ABC123"
+}
+
+###
+# Promotions API
+###
+
+### Check Promotion Code
+POST {{api}}/promotions/check
+Content-Type: application/json
+
+{
+  "promo_code": "HELLO2025",
+  "event_id": 33,
+  "ticket_package_details": [{"package_id": 2, "ticket_count": 2}],
+  "email": "pasankavindaabey@gmail.com"
+}
+###
+# Sales API (Admin)
+###
+
+### Get All Sales (Admin)
+GET {{api}}/sales
+Authorization: {{adminToken}}
+
+### Create Sale (Admin)
+POST {{api}}/sales
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "event_id": 1,
+  "package_id": 1,
+  "quantity": 1,
+  "amount": 5000.00,
+  "customer_email": "customer@example.com"
+}
+
+### Get Sale Details (Admin)
+GET {{api}}/sales/1
+Authorization: {{adminToken}}
+
+### Update Sale (Admin)
+PUT {{api}}/sales/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "completed"
+}
+
+### Delete Sale (Admin)
+DELETE {{api}}/sales/1
+Authorization: {{adminToken}}
+
+### Get Manager Sales (Manager)
+GET {{api}}/manager/sales
+Authorization: {{adminToken}}
+
+###
+# Manager Routes
+###
+
+### Get Manager Events
+GET {{api}}/manager/events
+Authorization: {{adminToken}}
+
+### Get Manager Event by ID
+GET {{api}}/manager/events/1
+Authorization: {{adminToken}}
+
+### Update Manager Event
+POST {{api}}/manager/events/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "ongoing",
+  "description": "Updated description"
+}
+
+### Send Event Invitations (Manager)
+POST {{api}}/manager/sendInvitations
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "event_id": 1,
+  "emails": ["guest1@example.com", "guest2@example.com"],
+  "message": "You're invited to our special event!"
+}
+
+### Get Event Invitations (Manager)
+GET {{api}}/manager/getInvitations/1
+Authorization: {{adminToken}}
+
+### Get Event Stats (Manager)
+GET {{api}}/event/stats/1
+Authorization: {{adminToken}}
+
+### Get Manager Coordinators
+GET {{api}}/manager/coordinators
+Authorization: {{adminToken}}
+
+### Create Manager Coordinator
+POST {{api}}/manager/coordinators
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Coordinator Name",
+  "email": "coordinator@example.com",
+  "password": "password123",
+  "phone_number": "+94771234567"
+}
+
+### Update Manager Coordinator
+PUT {{api}}/manager/coordinators/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Coordinator Name",
+  "phone_number": "+94771234568"
+}
+
+### Activate Manager Coordinator
+PUT {{api}}/manager/coordinators/activate/1
+Authorization: {{adminToken}}
+
+### Deactivate Manager Coordinator
+PUT {{api}}/manager/coordinators/deactivate/1
+Authorization: {{adminToken}}
+
+### Delete Manager Coordinator
+DELETE {{api}}/manager/coordinators/1
+Authorization: {{adminToken}}
+
+### Manager Logout
+POST {{api}}/auth/manager/logout
+Authorization: {{adminToken}}
+
+###
+# Notifications API (Admin)
+###
+
+### Schedule Notification (Admin)
+POST {{api}}/notifications/schedule
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Event Reminder",
+  "message": "Don't forget about the upcoming event!",
+  "scheduled_at": "2024-12-24T10:00:00Z",
+  "target": "all"
+}
+
+### Get All Notifications (Admin)
+GET {{api}}/notifications
+Authorization: {{adminToken}}
+
+### Get Notification Details (Admin)
+GET {{api}}/notification/1
+Authorization: {{adminToken}}
+
+### Update Notification (Admin)
+PUT {{api}}/notifications/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Updated Event Reminder",
+  "message": "Updated message content"
+}
+
+### Delete Notification (Admin)
+DELETE {{api}}/notifications/1
+Authorization: {{adminToken}}
+
+### Send Bulk SMS (Admin)
+POST {{api}}/sms/sendBulk
+Content-Type: application/json
+
+{
+  "recipients": ["+94771234567", "+94771234568"],
+  "message": "Important event update!",
+  "event_id": 1
+}
+
+###
+# Mail API (Admin)
+###
+
+### Send Order Email (Admin)
+POST {{api}}/send/orderMail
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "booking_id": 1,
+  "email": "customer@example.com"
+}
+
+###
+# Jobs API (Admin)
+###
+
+### Get Jobs (Admin)
+GET {{api}}/jobs
+Authorization: {{adminToken}}
+
+### Start Jobs Queue (Admin)
+POST {{api}}/jobs
+Authorization: {{adminToken}}
+
+### Retry Failed Jobs (Admin)
+POST {{api}}/jobs/failed
+Authorization: {{adminToken}}
+
+###
+# Payment Gateway API (Admin)
+###
+
+### Get Payment Gateways (Admin)
+GET {{api}}/payments/gateways
+Authorization: {{adminToken}}
+
+### Get Payment Gateway Details (Admin)
+GET {{api}}/payments/gateways/1
+Authorization: {{adminToken}}
+
+### Add Payment Gateway (Admin)
+POST {{api}}/payments/gateways
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "PayPal",
+  "type": "paypal",
+  "config": {
+    "client_id": "your_paypal_client_id",
+    "client_secret": "your_paypal_client_secret",
+    "sandbox": true
+  },
+  "is_active": true
+}
+
+### Update Payment Gateway (Admin)
+POST {{api}}/payments/gateways/1
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+### Remove Payment Gateway (Admin)
+DELETE {{api}}/payments/gateways/1
+Authorization: {{adminToken}}
+
+###
+# Analytics API (Admin)
+###
+
+### Add Pixel Code (Admin)
+POST {{api}}/analytics/add-pixel
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "event_id": 1,
+  "pixel_code": "GA_MEASUREMENT_ID",
+  "platform": "google_analytics"
+}
+
+### Create Marketing Link (Admin)
+POST {{api}}/analytics/create-marketing-link
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+  "event_id": 1,
+  "source": "facebook",
+  "medium": "social",
+  "campaign": "summer_promo"
+}
+
+### Get Analytics by Event (Admin)
+GET {{api}}/analytics/analytic-codes/1
+Authorization: {{adminToken}}
+
+###
+# Environment and Configuration Tests
+###
+
+### Test Database Connection
+GET {{baseUrl}}/
+Content-Type: application/json
+
+### Test Environment Variables
+# Check if the API is using the correct environment settings
+GET {{api}}/healthcheck
+Content-Type: application/json
+
+###
+# File Upload Tests (if implemented)
+###
+
+### Upload Event Image (Admin)
+# POST {{api}}/events/1/image
+# Authorization: {{adminToken}}
+# Content-Type: multipart/form-data
+# 
+# --boundary
+# Content-Disposition: form-data; name="image"; filename="event.jpg"
+# Content-Type: image/jpeg
+# 
+# [Binary image data]
+# --boundary--
+
+###
+# End of API Tests
+###

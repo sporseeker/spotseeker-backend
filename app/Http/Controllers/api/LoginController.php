@@ -27,6 +27,62 @@ class LoginController extends Controller
 
     use ApiResponse;
 
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     summary="User Login",
+     *     description="Login user with email and password",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Login successful"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="email", type="string", example="user@example.com"),
+     *                     @OA\Property(property="phone_no", type="string", example="0771234567"),
+     *                     @OA\Property(property="roles", type="array", @OA\Items(type="object"))
+     *                 ),
+     *                 @OA\Property(property="access_token", type="string", example="1|abc123...")
+     *             ),
+     *             @OA\Property(property="errors", type="array", @OA\Items())
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Authentication failed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="code", type="integer", example=401),
+     *             @OA\Property(property="message", type="string", example="Authentication failed"),
+     *             @OA\Property(property="errors", type="array", @OA\Items())
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="code", type="integer", example=422),
+     *             @OA\Property(property="message", type="string", example="validation failed"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function login(Request $request)
     {
         // Validate input fields
@@ -81,22 +137,88 @@ class LoginController extends Controller
         return $this->successResponse("Login successful", $loggedInUser);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/auth/register",
+     *     summary="User Registration",
+     *     description="Register a new user account",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email","password","password_confirmation","phone_no","verification_method"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="password123"),
+     *             @OA\Property(property="phone_no", type="string", example="0771234567"),
+     *             @OA\Property(property="verification_method", type="string", enum={"sms","email"}, example="sms")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Registration successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="code", type="integer", example=200),
+     *             @OA\Property(property="message", type="string", example="Registration successful! A verification code has been sent to your mobile number."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="email", type="string", example="user@example.com"),
+     *                 @OA\Property(property="phone_no", type="string", example="0771234567"),
+     *                 @OA\Property(property="token", type="string", example="1|abc123..."),
+     *                 @OA\Property(property="roles", type="array", @OA\Items(type="object"))
+     *             ),
+     *             @OA\Property(property="errors", type="array", @OA\Items())
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="code", type="integer", example=422),
+     *             @OA\Property(property="message", type="string", example="validation failed"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function register(Request $request)
     {
         // Step 1: Validate input data
-        $validator = Validator::make($request->all(), [
+        $validationRules = [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'phone_no' => 'required|numeric|digits:10|unique:users,phone_no',
             'verification_method' => 'required|string'
-        ]);
+        ];
+
+        // Add role validation if ALLOW_ROLE_ON_REGISTER is enabled (development only)
+        if (env('ALLOW_ROLE_ON_REGISTER', false)) {
+            $validationRules['role'] = 'sometimes|string|in:Admin,Manager,User,Coordinator';
+        }
+
+        $validator = Validator::make($request->all(), $validationRules);
 
         if ($validator->fails()) {
             return $this->generateResponse((object)['message' => 'validation failed', 'errors' => $validator->errors(), "status" => false, "code" => 422]);
         }
 
-        $user = $this->registerUser($request->name, $request->email, $request->password, $request->phone_no, $request->verification_method, "", true);
+        // Determine role - default to 'User' unless specified and allowed
+        $role = 'User';
+        if (env('ALLOW_ROLE_ON_REGISTER', false) && $request->has('role')) {
+            $role = $request->role;
+            // Debug log
+            Log::info('Role assignment enabled. Requested role: ' . $role);
+        } else {
+            // Debug log
+            Log::info('Role assignment: ALLOW_ROLE_ON_REGISTER=' . env('ALLOW_ROLE_ON_REGISTER', 'false') . ', has_role=' . ($request->has('role') ? 'true' : 'false'));
+        }
+
+        $user = $this->registerUser($request->name, $request->email, $request->password, $request->phone_no, $request->verification_method, "", true, 'credentials', null, $role);
 
         return $this->generateResponse((object)[
             'message' => 'Registration successful! A verification code has been sent to your mobile number.',
@@ -154,7 +276,7 @@ class LoginController extends Controller
 
             if (!$loggedInUser) {
                 // Register new user if not exists
-                $loggedInUser = $this->registerUser($user->name, $user->email, "", null, null, $user->avatar, false, $request->provider, $user);
+                $loggedInUser = $this->registerUser($user->name, $user->email, "", null, null, $user->avatar, false, $request->provider, $user, 'User');
             } else {
 
                 $parts = explode(' ', $user->name);
@@ -419,7 +541,7 @@ class LoginController extends Controller
         return $this->generateResponse($authFailObj);
     }
 
-    private function registerUser($name, $email, $password, $phone_no, $verification_method = null, $profile_photo_path = null, $verify = false, $provider = 'credentials', $socialUser = null)
+    private function registerUser($name, $email, $password, $phone_no, $verification_method = null, $profile_photo_path = null, $verify = false, $provider = 'credentials', $socialUser = null, $roleName = 'User')
     {
         $parts = explode(' ', $name);
         $first_name = $parts[0];
@@ -436,7 +558,17 @@ class LoginController extends Controller
             'profile_photo_path' => $profile_photo_path
         ]);
 
-        $role = Role::where(['name' => 'user'])->first();
+        // Use the provided role name (default to 'User' instead of 'user')
+        $role = Role::where(['name' => $roleName])->first();
+        
+        // Debug log
+        Log::info('Looking for role: ' . $roleName . ', found: ' . ($role ? 'yes (ID: ' . $role->id . ')' : 'no'));
+        
+        if (!$role) {
+            // Fallback to 'User' role if specified role doesn't exist
+            $role = Role::where(['name' => 'User'])->first();
+            Log::info('Fallback to User role, found: ' . ($role ? 'yes (ID: ' . $role->id . ')' : 'no'));
+        }
 
         $user->syncRoles([$role->id]);
 
